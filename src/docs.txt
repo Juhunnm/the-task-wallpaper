@@ -1,0 +1,10 @@
+src
+    - api
+    - components
+        - layout
+        - ui
+    - hook
+    - lib
+    - page
+    - provider
+    - store
