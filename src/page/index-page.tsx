@@ -1,12 +1,13 @@
 import Tasklist from "@/components/task/task-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getTodayDay } from "@/lib/utils";
+import { getTodayDate, getTodayDay } from "@/lib/utils";
 import type { Task } from "@/types";
 import { Plus } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import * as htmlToImage from "html-to-image";
 import { replaceImage } from "@/api/image";
+import { useShowDate, useShowProgress } from "@/store/setting-store";
 
 const MokTasks: Task[] = [
   {
@@ -30,6 +31,7 @@ export default function IndexPage() {
   const [tasks, setTasks] = useState<Task[]>(MokTasks);
   const [newTask, setNewTask] = useState("");
   const day = getTodayDay();
+  const date = getTodayDate();
   const captureRef = useRef<HTMLDivElement>(null);
 
   const isFirstRender = useRef(true);
@@ -90,6 +92,8 @@ export default function IndexPage() {
       prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
     );
   };
+  const showProgress = useShowProgress();
+  const showDate = useShowDate();
 
   return (
     <div
@@ -98,10 +102,13 @@ export default function IndexPage() {
     >
       <div className="mx-auto w-full p-6">
         <div className="mb-6 ml-1">
+          {showDate && <p className="text-muted-foreground text-sm">{date}</p>}
           <h1 className="mb-1 text-2xl font-semibold">{day}</h1>
-          <p className="text-muted-foreground text-sm">
-            {`${checkedCount} of ${tasks.length} tasks completed`}
-          </p>
+          {showProgress && (
+            <p className="text-muted-foreground text-sm">
+              {`${checkedCount} of ${tasks.length} tasks completed`}
+            </p>
+          )}
         </div>
         {/* input */}
         <div className="mb-6 flex gap-2">

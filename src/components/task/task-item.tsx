@@ -1,3 +1,4 @@
+import { useAccentColor } from "@/store/setting-store";
 import type { Task } from "@/types";
 import { Check, Trash2 } from "lucide-react";
 
@@ -12,6 +13,7 @@ export default function TaskItem({
   toggleTask,
   deleteTask,
 }: Props) {
+  const accentColor = useAccentColor();
   return (
     <div
       key={id}
@@ -19,11 +21,17 @@ export default function TaskItem({
     >
       <button
         onClick={() => toggleTask(id)}
+        style={{ backgroundColor: completed ? accentColor : "transparent" }}
         className={
           "flex h-5 w-5 items-center justify-center rounded-full border-2"
         }
       >
-        {completed && <Check className="h-3 w-3" />}
+        {completed && (
+          <Check
+            style={{ color: accentColor === "#FFFFFF" ? "#000" : "#FFF" }}
+            className="h-3 w-3"
+          />
+        )}
       </button>
       <span
         className={`transition-colorstext-neutral-500 flex-1 text-sm ${completed && "line-through"}`}
