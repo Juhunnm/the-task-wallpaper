@@ -1,29 +1,8 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import { combine, persist } from "zustand/middleware";
-
-type DeviceType =
-  | "iphone-16-pro-max"
-  | "iphone-16-pro"
-  | "iphone-16"
-  | "iphone-15"
-  | "iphone-se";
-
-interface DeviceInfo {
-  name: string;
-  width: number;
-  height: number;
-}
-
-export const DEVICES: Record<DeviceType, DeviceInfo> = {
-  "iphone-16-pro-max": { name: "iPhone 16 Pro Max", width: 440, height: 956 },
-  "iphone-16-pro": { name: "iPhone 16 Pro", width: 402, height: 874 },
-  "iphone-16": { name: "iPhone 16", width: 393, height: 852 },
-  "iphone-15": { name: "iPhone 15", width: 393, height: 852 },
-  "iphone-se": { name: "iPhone SE", width: 375, height: 667 },
-};
-
-export type Theme = "dark" | "light";
+import type { DeviceType } from "shared/devices";
+import type { Theme } from "shared/types";
 
 interface DesignSettings {
   mode: Theme;
@@ -59,7 +38,6 @@ const useSettingStore = create(
               state.design.mode = mode;
             });
           },
-
           setDevice: (device: DeviceType) =>
             set((state) => {
               state.device = device;
@@ -88,7 +66,10 @@ export const useThemeMode = () => {
   const themeMode = useSettingStore((store) => store.design.mode);
   return themeMode;
 };
-
+export const useDevice = () => {
+  const device = useSettingStore((store) => store.device);
+  return device;
+};
 export const useAccentColor = () => {
   const accentColor = useSettingStore((store) => store.design.accentColor);
   return accentColor;
@@ -103,6 +84,10 @@ export const useShowProgress = () => {
 };
 
 // func
+export const useSetDevice = () => {
+  const setDevice = useSettingStore((store) => store.actions.setDevice);
+  return setDevice;
+};
 export const useSetThemeMode = () => {
   const setThemeMode = useSettingStore((store) => store.actions.setMode);
   return setThemeMode;

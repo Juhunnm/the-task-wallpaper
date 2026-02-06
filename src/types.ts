@@ -1,5 +1,3 @@
-export type Task = {
-  id: number;
-  text: string;
-  completed: boolean;
-};
+import { DEVICES } from "../shared/devices";
+
+export type DeviceInfo = (typeof DEVICES)[number];

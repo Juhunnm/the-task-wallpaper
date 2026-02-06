@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { Header } from "./header";
+import { Header } from "./header/header";
 export default function GlobalLayout() {
   return (
     <div className="flex min-h-screen flex-col">

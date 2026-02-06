@@ -2,12 +2,14 @@ import Tasklist from "@/components/task/task-list";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTodayDate, getTodayDay } from "@/lib/utils";
-import type { Task } from "@/types";
+
 import { Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import * as htmlToImage from "html-to-image";
 import { replaceImage } from "@/api/image";
-import { useShowDate, useShowProgress } from "@/store/setting-store";
+import { useDevice, useShowDate, useShowProgress } from "@/store/setting-store";
+import type { Task } from "shared/types";
+import { DEVICES } from "shared/devices";
 
 const MokTasks: Task[] = [
   {
@@ -32,6 +34,9 @@ export default function IndexPage() {
   const [newTask, setNewTask] = useState("");
   const day = getTodayDay();
   const date = getTodayDate();
+  const device = useDevice();
+  const deviceInfo = DEVICES.find((d) => d.id === device);
+
   const captureRef = useRef<HTMLDivElement>(null);
 
   const isFirstRender = useRef(true);
@@ -98,7 +103,8 @@ export default function IndexPage() {
   return (
     <div
       ref={captureRef}
-      className="flex min-h-screen flex-col items-center justify-center p-6"
+      style={{ width: deviceInfo?.width, height: deviceInfo?.height }}
+      className="flex min-h-screen flex-col items-center justify-center border-x p-6"
     >
       <div className="mx-auto w-full p-6">
         <div className="mb-6 ml-1">
