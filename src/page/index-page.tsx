@@ -4,12 +4,21 @@ import { Input } from "@/components/ui/input";
 import { getTodayDate, getTodayDay } from "@/lib/utils";
 
 import { Plus } from "lucide-react";
-import { useRef, useState } from "react";
-import * as htmlToImage from "html-to-image";
-import { replaceImage } from "@/api/image";
-import { useDevice, useShowDate, useShowProgress } from "@/store/setting-store";
-import type { Task } from "shared/types";
-import { DEVICES } from "shared/devices";
+import { useEffect, useState } from "react";
+// import * as htmlToImage from "html-to-image";
+// import { replaceImage } from "@/api/image";
+import {
+  useDevice,
+  useSetDesign,
+  useSetDevice,
+  useSetThemeMode,
+  useShowDate,
+  useShowProgress,
+} from "@/store/setting-store";
+import type { Task, Theme } from "shared/types";
+import { DEVICES, type DeviceType } from "shared/devices";
+import { useLocation } from "react-router";
+import { readWallpaperQuery } from "@/lib/query";
 
 const MokTasks: Task[] = [
   {
@@ -32,46 +41,26 @@ const MokTasks: Task[] = [
 export default function IndexPage() {
   const [tasks, setTasks] = useState<Task[]>(MokTasks);
   const [newTask, setNewTask] = useState("");
+
+  const { search } = useLocation();
+
+  const setThemeMode = useSetThemeMode();
+  const setDesign = useSetDesign();
+  const setDevice = useSetDevice();
+  const device = useDevice();
+
   const day = getTodayDay();
   const date = getTodayDate();
-  const device = useDevice();
   const deviceInfo = DEVICES.find((d) => d.id === device);
 
-  const captureRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const q = readWallpaperQuery(search);
+    console.log(q);
 
-  const isFirstRender = useRef(true);
-  const exportAsPng = async () => {
-    if (!captureRef.current) return;
-
-    const dataUrl = await htmlToImage.toPng(captureRef.current, {
-      cacheBust: true,
-      pixelRatio: 3,
-    });
-
-    const blob = await (await fetch(dataUrl)).blob();
-    const bucket = "wallpapers";
-    const path = `public/wallpaper.png`;
-
-    try {
-      console.log("start");
-
-      await replaceImage(bucket, path, blob);
-    } catch (e) {
-      console.error("upload failed:", e);
-    }
-  };
-
-  // useEffect(() => {
-  //   if (isFirstRender.current) {
-  //     isFirstRender.current = false;
-  //     return;
-  //   }
-  //   const t = setTimeout(() => {
-  //     exportAsPng();
-  //   }, 1000); // 1분 동안 변화 없을 때만 업로드
-
-  //   return () => clearTimeout(t);
-  // }, [tasks]);
+    if (q.theme) setThemeMode(q.theme as Theme);
+    if (q.accent) setDesign({ accentColor: q.accent });
+    if (q.device) setDevice(q.device as DeviceType);
+  }, [search, setThemeMode, setDesign, setDevice]);
 
   const checkedCount = tasks.filter((t) => t.completed).length;
 
@@ -102,7 +91,7 @@ export default function IndexPage() {
 
   return (
     <div
-      ref={captureRef}
+      // ref={captureRef}
       style={{ width: deviceInfo?.width, height: deviceInfo?.height }}
       className="flex min-h-screen flex-col items-center justify-center border-x p-6"
     >

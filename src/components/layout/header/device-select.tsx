@@ -8,12 +8,19 @@ import {
 import { Smartphone } from "lucide-react";
 import { DEVICES, type DeviceType } from "shared/devices";
 import { useDevice, useSetDevice } from "@/store/setting-store";
+import useUpdateWallpaperQuery from "@/hook/use-update-wallpaper-query";
 export default function DeviceSelect() {
   const device = useDevice();
 
   const setDevice = useSetDevice();
+  const updateQuery = useUpdateWallpaperQuery();
+
+  const onChangeDevice = (v: string) => {
+    setDevice(v as DeviceType);
+    updateQuery({ device: v });
+  };
   return (
-    <Select value={device} onValueChange={(v) => setDevice(v as DeviceType)}>
+    <Select value={device} onValueChange={onChangeDevice}>
       <SelectTrigger className="w-full min-w-45">
         <Smartphone />
         <SelectValue placeholder="Select device" />

@@ -28,7 +28,7 @@ export default function LenderLink() {
     });
 
     // 나중에 배포 대비해서 env로 빼는 게 좋음
-    const base = import.meta.env.VITE_RENDER_SERVER ?? "http://localhost:4000";
+    const base = import.meta.env.VITE_RENDER_SERVER ?? "http://localhost:3000";
     return `${base}/render?${params.toString()}`;
   }, [device, theme, accent, showDate, showProgress]);
 

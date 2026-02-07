@@ -17,6 +17,7 @@ import {
   useShowProgress,
   useThemeMode,
 } from "@/store/setting-store";
+import useUpdateWallpaperQuery from "@/hook/use-update-wallpaper-query";
 
 type Color = {
   name: string;
@@ -48,6 +49,16 @@ export default function DesignSettingPopoOver() {
   const setDesign = useSetDesign();
   const setToggle = useSetToggle();
 
+  const updateQuery = useUpdateWallpaperQuery();
+
+  const onClickTheme = (mode: Theme) => {
+    setThemeMode(mode);
+    updateQuery({ theme: mode });
+  };
+  const onClickAccent = (hex: string) => {
+    setDesign({ accentColor: hex });
+    updateQuery({ accent: hex });
+  };
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -72,7 +83,7 @@ export default function DesignSettingPopoOver() {
                 <button
                   key={color.mode}
                   type="button"
-                  onClick={() => setThemeMode(color.mode)}
+                  onClick={() => onClickTheme(color.mode)}
                   className={`h-7 w-7 cursor-pointer rounded-full border-2 transition-all ${
                     themeMode === color.mode
                       ? "border-muted-foreground scale-110"
@@ -93,7 +104,7 @@ export default function DesignSettingPopoOver() {
                 <button
                   key={color.value}
                   type="button"
-                  onClick={() => setDesign({ accentColor: color.value })}
+                  onClick={() => onClickAccent(color.value)}
                   className={`h-7 w-7 cursor-pointer rounded-full border-2 transition-all ${
                     accentColor === color.value
                       ? "border-muted-foreground scale-110"
@@ -112,7 +123,10 @@ export default function DesignSettingPopoOver() {
               <Label className="text-muted-foreground text-xs">Show Date</Label>
               <Switch
                 checked={showDate}
-                onCheckedChange={(checked) => setToggle("showDate", checked)}
+                onCheckedChange={(checked) => {
+                  setToggle("showDate", checked);
+                  updateQuery({ date: checked ? "1" : "0" });
+                }}
               />
             </div>
 
@@ -122,9 +136,10 @@ export default function DesignSettingPopoOver() {
               </Label>
               <Switch
                 checked={showProgress}
-                onCheckedChange={(checked) =>
-                  setToggle("showProgress", checked)
-                }
+                onCheckedChange={(checked) => {
+                  setToggle("showProgress", checked);
+                  updateQuery({ progress: checked ? "1" : "0" });
+                }}
               />
             </div>
           </div>
