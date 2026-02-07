@@ -6,19 +6,29 @@ const DEFAULTS = {
   theme: "light" as Theme,
   accent: "#FFFFFF",
   device: "iphone-16-pro" as DeviceType,
-  date: "1",
-  progress: "1",
+  date: true,
+  progress: true,
 };
+
+function parse(v: string | null, fallback: boolean) {
+  if (v === "1" || v === "true") return true;
+  if (v === "0" || v === "false") return false;
+  return fallback;
+}
 
 export function readWallpaperQuery(search: string) {
   const sp = new URLSearchParams(search);
   const theme = sp.get("theme");
+  const showDate = parse(sp.get("date"), DEFAULTS.date);
+  const showProgress = parse(sp.get("progress"), DEFAULTS.progress);
+  const render = sp.get("render") === "1" || sp.get("render") === "true";
   return {
     theme: (theme === "dark" ? "dark" : "light") as Theme,
     accent: sp.get("accent") ?? DEFAULTS.accent,
     device: sp.get("device") ?? DEFAULTS.device,
-    showDate: sp.get("date") ?? DEFAULTS.date,
-    showProgress: sp.get("progress") ?? DEFAULTS.progress,
+    showDate,
+    showProgress,
+    render,
   };
 }
 

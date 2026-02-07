@@ -1,6 +1,6 @@
 import { useAccentColor } from "@/store/setting-store";
-import type { Task } from "@/types";
 import { Check, Trash2 } from "lucide-react";
+import type { Task } from "shared/types";
 
 type Props = Task & {
   toggleTask: (id: number) => void;

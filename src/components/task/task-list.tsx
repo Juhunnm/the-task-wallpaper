@@ -1,4 +1,4 @@
-import type { Task } from "@/types";
+import type { Task } from "shared/types";
 import TaskItem from "./task-item";
 
 export default function Tasklist({

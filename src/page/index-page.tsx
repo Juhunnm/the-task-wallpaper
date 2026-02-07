@@ -12,6 +12,7 @@ import {
   useSetDesign,
   useSetDevice,
   useSetThemeMode,
+  useSetToggle,
   useShowDate,
   useShowProgress,
 } from "@/store/setting-store";
@@ -43,24 +44,41 @@ export default function IndexPage() {
   const [newTask, setNewTask] = useState("");
 
   const { search } = useLocation();
-
+  //store
   const setThemeMode = useSetThemeMode();
   const setDesign = useSetDesign();
   const setDevice = useSetDevice();
+  const setToggle = useSetToggle();
   const device = useDevice();
+  const showProgress = useShowProgress();
+  const showDate = useShowDate();
 
   const day = getTodayDay();
   const date = getTodayDate();
   const deviceInfo = DEVICES.find((d) => d.id === device);
 
+  const q = readWallpaperQuery(search);
+  console.log(q);
+  const isRenderMode = q.render;
   useEffect(() => {
-    const q = readWallpaperQuery(search);
-    console.log(q);
-
     if (q.theme) setThemeMode(q.theme as Theme);
     if (q.accent) setDesign({ accentColor: q.accent });
     if (q.device) setDevice(q.device as DeviceType);
-  }, [search, setThemeMode, setDesign, setDevice]);
+
+    setToggle("showDate", Boolean(q.showDate));
+    setToggle("showProgress", Boolean(q.showProgress));
+    console.log("showdate,progress", q.showDate, q.showProgress);
+  }, [
+    q.theme,
+    q.accent,
+    q.device,
+    q.showDate,
+    q.showProgress,
+    setThemeMode,
+    setDesign,
+    setDevice,
+    setToggle,
+  ]);
 
   const checkedCount = tasks.filter((t) => t.completed).length;
 
@@ -86,12 +104,11 @@ export default function IndexPage() {
       prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
     );
   };
-  const showProgress = useShowProgress();
-  const showDate = useShowDate();
 
   return (
     <div
       // ref={captureRef}
+      id="capture-root"
       style={{ width: deviceInfo?.width, height: deviceInfo?.height }}
       className="flex min-h-screen flex-col items-center justify-center border-x p-6"
     >
@@ -106,18 +123,20 @@ export default function IndexPage() {
           )}
         </div>
         {/* input */}
-        <div className="mb-6 flex gap-2">
-          <Input
-            value={newTask}
-            placeholder="Add a new task..."
-            onChange={(e) => setNewTask(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addTask()}
-            className="focus-visible:ring-muted h-10 flex-1"
-          />
-          <Button variant={"outline"} onClick={addTask} className="h-10">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+        {!isRenderMode && (
+          <div className="mb-6 flex gap-2">
+            <Input
+              value={newTask}
+              placeholder="Add a new task..."
+              onChange={(e) => setNewTask(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addTask()}
+              className="focus-visible:ring-muted h-10 flex-1"
+            />
+            <Button variant={"outline"} onClick={addTask} className="h-10">
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         {/* tasks list */}
         <Tasklist
           tasks={tasks}
