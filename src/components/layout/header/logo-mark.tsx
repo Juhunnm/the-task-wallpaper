@@ -1,6 +1,6 @@
 import { useAccentColor } from "@/store/setting-store";
 
-export function Logo() {
+export function LogoMark() {
   const accentColor = useAccentColor();
 
   return (

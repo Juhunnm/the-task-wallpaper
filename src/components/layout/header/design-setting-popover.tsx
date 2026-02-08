@@ -17,7 +17,7 @@ import {
   useShowProgress,
   useThemeMode,
 } from "@/store/setting-store";
-import useUpdateWallpaperQuery from "@/hook/use-update-wallpaper-query";
+import useUpdateWallpaperQuery from "@/hook/queries/use-update-wallpaper-query";
 
 type Color = {
   name: string;

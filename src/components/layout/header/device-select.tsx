@@ -8,7 +8,7 @@ import {
 import { Smartphone } from "lucide-react";
 import { DEVICES, type DeviceType } from "shared/devices";
 import { useDevice, useSetDevice } from "@/store/setting-store";
-import useUpdateWallpaperQuery from "@/hook/use-update-wallpaper-query";
+import useUpdateWallpaperQuery from "@/hook/queries/use-update-wallpaper-query";
 export default function DeviceSelect() {
   const device = useDevice();
 

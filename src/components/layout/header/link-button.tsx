@@ -10,7 +10,7 @@ import {
   useThemeMode,
 } from "@/store/setting-store";
 
-export default function LenderLink() {
+export default function LinkButton() {
   const device = useDevice();
   const theme = useThemeMode();
   const accent = useAccentColor();
