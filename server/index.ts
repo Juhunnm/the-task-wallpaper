@@ -1,9 +1,10 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { RenderPayload, Theme } from "../shared/types";
+import { RenderPayload, Theme, Task } from "../shared/types";
 import { DEVICE_MAP, DeviceType } from "../shared/devices";
 import { chromium } from "playwright";
+import { createClient } from "@supabase/supabase-js";
 
 const app = express();
 
@@ -12,6 +13,12 @@ app.use(express.json());
 
 const FRONTEND_ORIGIN =
   process.env.FRONTEND_ORIGIN?.trim() || "http://localhost:5173";
+
+// service role key: RLS 우회해서 서버 측에서 임의 유저 데이터 조회 가능
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 function parseBool(v: unknown, fallback = false) {
   if (typeof v !== "string") return fallback;
@@ -26,29 +33,66 @@ function isDeviceType(v: any): v is DeviceType {
   return v && typeof v === "string" && v in DEVICE_MAP;
 }
 
+function coerceTasks(v: any): Task[] {
+  if (!Array.isArray(v)) return [];
+  return v
+    .filter((t) => t && typeof t.text === "string")
+    .map((t) => ({
+      id: Number(t.id),
+      text: String(t.text),
+      completed: Boolean(t.completed),
+    }));
+}
+
+async function fetchTasksForUser(userId: string): Promise<Task[]> {
+  const { data, error } = await supabase
+    .from("tasks")
+    .select("tasks")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("tasks 조회 실패:", error.message);
+    return [];
+  }
+  if (!data) return [];
+  return coerceTasks(data.tasks);
+}
+
 app.get("/api/wallpaper.png", async (req, res) => {
-  //   try {
   const deviceQ = req.query.device;
   const themeQ = req.query.theme;
   const accentQ = req.query.accent;
+  const userIdQ = req.query.userId;
 
   const device: DeviceType = isDeviceType(deviceQ) ? deviceQ : "iphone-16";
   const theme: Theme = isTheme(themeQ) ? themeQ : "dark";
   const accentColor =
     typeof accentQ === "string" && accentQ.length > 0 ? accentQ : "#FFFFFF";
-
   const showDate = parseBool(req.query.date, true);
+
   const showProgress = parseBool(req.query.progress, true);
 
-  const sp = new URLSearchParams({
+  // userId가 있으면 해당 유저 tasks 조회, 없으면 빈 배열
+  const tasks: Task[] =
+    typeof userIdQ === "string" && userIdQ.length > 0
+      ? await fetchTasksForUser(userIdQ)
+      : [];
+
+  // RenderPayload를 base64로 인코딩해서 /render 페이지로 전달
+  const payload: RenderPayload = {
     device,
     theme,
-    accent: accentColor,
-    date: showDate ? "1" : "0",
-    progress: showProgress ? "1" : "0",
-    render: "1",
-  });
-  const targetUrl = `${FRONTEND_ORIGIN}/?${sp.toString()}`;
+    accentColor,
+    showDate,
+    showProgress,
+    tasks,
+  };
+  const encoded = Buffer.from(JSON.stringify(payload), "utf-8").toString(
+    "base64",
+  );
+  console.log(encoded);
+  const targetUrl = `${FRONTEND_ORIGIN}/render?payload=${encodeURIComponent(encoded)}`;
 
   const { width, height } = DEVICE_MAP[device];
 
@@ -61,19 +105,16 @@ app.get("/api/wallpaper.png", async (req, res) => {
 
     const context = await browser.newContext({
       viewport: { width, height },
-      deviceScaleFactor: 3, // 선명도
+      deviceScaleFactor: 3,
     });
 
     const page = await context.newPage();
 
-    // ✅ 프론트 페이지 로드
     await page.goto(targetUrl, { waitUntil: "networkidle" });
 
-    // ✅ 캡쳐 대상 찾기 (프론트에서 id 부여한 것)
     const el = await page.waitForSelector("#capture-root", { timeout: 15000 });
 
-    // (선택) 폰트/레이아웃 안정화를 위해 한 프레임 기다리기
-    await page.waitForTimeout(50);
+    await page.waitForTimeout(300);
 
     const png = await el.screenshot({ type: "png" });
 
@@ -87,45 +128,8 @@ app.get("/api/wallpaper.png", async (req, res) => {
     if (browser) await browser.close();
   }
 });
-// const { width, height } = DEVICE_MAP[device];
-
-// res.send({ payload, width, height });
-// 프론트 렌더 전용 페이지로 payload 전달 (base64)
-// const encoded = Buffer.from(JSON.stringify(payload), "utf-8").toString(
-//   "base64",
-// );
-
-// const renderUrl = `${process.env.FRONT_PORT}/render?payload=${encodeURIComponent(encoded)}`;
-// console.log(renderUrl);
-
-//     const browser = await chromium.launch();
-//     const page = await browser.newPage({
-//       viewport: { width, height },
-//       deviceScaleFactor: 3,
-//     });
-
-//     try {
-//       await page.goto(renderUrl, { waitUntil: "networkidle" });
-//       await page.waitForSelector("#capture-root", { timeout: 10_000 });
-
-//       const el = await page.$("#capture-root");
-//       const png = await el!.screenshot({ type: "png" });
-
-//       res.setHeader("Content-Type", "image/png");
-//       res.setHeader("Cache-Control", "no-store");
-//       return res.status(200).send(png);
-//     } finally {
-//       await page.close().catch(() => {});
-//       await browser.close().catch(() => {});
-//     }
-//   } catch (e: any) {
-//     console.error(e);
-//     return res.status(500).json({ error: e?.message ?? "Render failed" });
-//   }
-// });
 
 const PORT = process.env.PORT || 4000;
-console.log(process.env.PORT);
 app.listen(PORT, () => {
   console.log(`Render server on http://localhost:${PORT}`);
 });

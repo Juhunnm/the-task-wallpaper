@@ -21,7 +21,7 @@ export default function DeviceSelect() {
   };
   return (
     <Select value={device} onValueChange={onChangeDevice}>
-      <SelectTrigger className="w-full min-w-45">
+      <SelectTrigger className="min-w-[180px]">
         <Smartphone />
         <SelectValue placeholder="Select device" />
       </SelectTrigger>

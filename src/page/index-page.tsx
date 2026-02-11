@@ -1,13 +1,12 @@
-import Tasklist from "@/components/task/task-list";
+import WallpaperContent from "@/components/wallpaper/wallpaper-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getTodayDate, getTodayDay } from "@/lib/utils";
 
 import { Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-// import * as htmlToImage from "html-to-image";
-// import { replaceImage } from "@/api/image";
+import { useEffect, useRef, useState } from "react";
 import {
+  useAccentColor,
   useDevice,
   useSetDesign,
   useSetDevice,
@@ -20,31 +19,43 @@ import type { Task, Theme } from "shared/types";
 import { DEVICES, type DeviceType } from "shared/devices";
 import { useLocation } from "react-router";
 import { readWallpaperQuery } from "@/lib/query";
-
-const MokTasks: Task[] = [
-  {
-    id: 1,
-    text: "Design new landing page",
-    completed: true,
-  },
-  {
-    id: 2,
-    text: "Review pull requests",
-    completed: false,
-  },
-  {
-    id: 3,
-    text: "Write documentatxion",
-    completed: false,
-  },
-];
+import { useFetchTasksByUser } from "@/hook/queries/use-fetch-tasks-by-user";
+import { useSaveTasksByUser } from "@/hook/mutations/use-save-tasks-by-user";
+import { useSession } from "@/store/session";
 
 export default function IndexPage() {
-  const [tasks, setTasks] = useState<Task[]>(MokTasks);
+  const session = useSession();
+  const userId = session?.user.id ?? "";
+
+  const { data: fetchedTasks } = useFetchTasksByUser(userId);
+  const { mutate: saveTasks } = useSaveTasksByUser({});
+
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState("");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // DB에서 로드된 tasks로 초기화 (최초 1회)
+  const isInitialized = useRef(false);
+  useEffect(() => {
+    if (!isInitialized.current && fetchedTasks) {
+      setTasks(fetchedTasks);
+      isInitialized.current = true;
+    }
+  }, [fetchedTasks]);
+
+  // tasks 변경 시 1초 debounce로 자동 저장
+  useEffect(() => {
+    if (!userId || !isInitialized.current) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveTasks({ userId, tasks });
+    }, 1000);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [tasks, userId, saveTasks]);
 
   const { search } = useLocation();
-  //store
   const setThemeMode = useSetThemeMode();
   const setDesign = useSetDesign();
   const setDevice = useSetDevice();
@@ -52,22 +63,21 @@ export default function IndexPage() {
   const device = useDevice();
   const showProgress = useShowProgress();
   const showDate = useShowDate();
+  const accentColor = useAccentColor();
 
   const day = getTodayDay();
   const date = getTodayDate();
   const deviceInfo = DEVICES.find((d) => d.id === device);
 
   const q = readWallpaperQuery(search);
-  console.log(q);
   const isRenderMode = q.render;
+
   useEffect(() => {
     if (q.theme) setThemeMode(q.theme as Theme);
     if (q.accent) setDesign({ accentColor: q.accent });
     if (q.device) setDevice(q.device as DeviceType);
-
     setToggle("showDate", Boolean(q.showDate));
     setToggle("showProgress", Boolean(q.showProgress));
-    console.log("showdate,progress", q.showDate, q.showProgress);
   }, [
     q.theme,
     q.accent,
@@ -80,17 +90,11 @@ export default function IndexPage() {
     setToggle,
   ]);
 
-  const checkedCount = tasks.filter((t) => t.completed).length;
-
   const addTask = () => {
     if (newTask.trim() === "") return;
     setTasks((prev) => [
       ...prev,
-      {
-        id: Date.now(),
-        text: newTask,
-        completed: false,
-      },
+      { id: Date.now(), text: newTask, completed: false },
     ]);
     setNewTask("");
   };
@@ -107,24 +111,13 @@ export default function IndexPage() {
 
   return (
     <div
-      // ref={captureRef}
       id="capture-root"
       style={{ width: deviceInfo?.width, height: deviceInfo?.height }}
-      className="flex min-h-screen flex-col items-center justify-center border-x p-6"
+      className="flex min-h-screen flex-col items-center justify-center border-x"
     >
-      <div className="mx-auto w-full p-6">
-        <div className="mb-6 ml-1">
-          {showDate && <p className="text-muted-foreground text-sm">{date}</p>}
-          <h1 className="mb-1 text-2xl font-semibold">{day}</h1>
-          {showProgress && (
-            <p className="text-muted-foreground text-sm">
-              {`${checkedCount} of ${tasks.length} tasks completed`}
-            </p>
-          )}
-        </div>
-        {/* input */}
-        {!isRenderMode && (
-          <div className="mb-6 flex gap-2">
+      {!isRenderMode && (
+        <div className="w-full px-12 pb-2 pt-6">
+          <div className="flex gap-2">
             <Input
               value={newTask}
               placeholder="Add a new task..."
@@ -136,14 +129,18 @@ export default function IndexPage() {
               <Plus className="h-4 w-4" />
             </Button>
           </div>
-        )}
-        {/* tasks list */}
-        <Tasklist
-          tasks={tasks}
-          toggleTask={toggleTask}
-          deleteTask={deleteTask}
-        />
-      </div>
+        </div>
+      )}
+      <WallpaperContent
+        tasks={tasks}
+        accentColor={accentColor}
+        showDate={showDate}
+        showProgress={showProgress}
+        day={day}
+        date={date}
+        toggleTask={toggleTask}
+        deleteTask={deleteTask}
+      />
     </div>
   );
 }

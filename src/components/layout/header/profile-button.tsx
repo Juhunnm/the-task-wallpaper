@@ -1,19 +1,29 @@
 import { signOut } from "@/api/auth";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/store/session";
-import { LogOut, User } from "lucide-react";
+import { LogIn, LogOut, User } from "lucide-react";
 import { Link } from "react-router";
 
 export default function ProfileButton() {
   const session = useSession();
-  console.log(session);
 
-  if (!session) return null;
+  if (!session) {
+    return (
+      <Button variant="ghost" size="sm" asChild className="gap-1.5">
+        <Link to="/sign-in">
+          <LogIn className="h-4 w-4" />
+          로그인
+        </Link>
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
@@ -24,18 +34,15 @@ export default function ProfileButton() {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        {/* <DropdownMenuItem asChild>
-          <Link to={`/profile/${session.user.id}`}>
-            <User className="mr-2 h-4 w-4" />
-            프로필
-          </Link>
-        </DropdownMenuItem> */}
-
+        <div className="text-muted-foreground px-2 py-1.5 text-xs">
+          {session.user.email}
+        </div>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={signOut}
-          className="text-red-600 focus:text-red-600"
+          className="cursor-pointer text-red-500 focus:text-red-500"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="h-4 w-4" />
           로그아웃
         </DropdownMenuItem>
       </DropdownMenuContent>

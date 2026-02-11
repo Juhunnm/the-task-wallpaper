@@ -4,21 +4,24 @@ import ProfileButton from "./header/profile-button";
 import DesignSettingPopoOver from "./header/design-setting-popover";
 import { LogoMark } from "./header/logo-mark";
 import LinkButton from "./header/link-button";
+
 export default function GlobalLayout() {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="h-14 w-full border-b px-4">
-        <div className="mx-auto flex h-14 max-w-xl items-center justify-between px-4">
+      <header className="border-b">
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-3 px-4">
           <LogoMark />
-          <div className="flex items-center gap-2">
-            <LinkButton />
+          <div className="flex flex-1 justify-center">
             <DeviceSelect />
-            <DesignSettingPopoOver />
           </div>
-          <ProfileButton />
+          <div className="flex items-center gap-1">
+            <LinkButton />
+            <DesignSettingPopoOver />
+            <ProfileButton />
+          </div>
         </div>
       </header>
-      <main className="flex min-h-screen items-center justify-center">
+      <main className="flex flex-1 items-center justify-center">
         <Outlet />
       </main>
     </div>

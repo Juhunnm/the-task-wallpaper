@@ -34,10 +34,14 @@ const COLORS: {
 const ACCENT_COLORS: Color[] = [
   { name: "White", value: "#FFFFFF" },
   { name: "Green", value: "#0FBF3E" },
+  { name: "Teal", value: "#14B8A6" },
   { name: "Blue", value: "#3B82F6" },
+  { name: "Indigo", value: "#6366F1" },
   { name: "Purple", value: "#8B5CF6" },
-  { name: "Orange", value: "#F97316" },
   { name: "Pink", value: "#EC4899" },
+  { name: "Red", value: "#EF4444" },
+  { name: "Orange", value: "#F97316" },
+  { name: "Yellow", value: "#EAB308" },
 ];
 export default function DesignSettingPopoOver() {
   const themeMode = useThemeMode();

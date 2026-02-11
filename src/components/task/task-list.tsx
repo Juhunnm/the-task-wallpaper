@@ -3,10 +3,12 @@ import TaskItem from "./task-item";
 
 export default function Tasklist({
   tasks,
+  accentColor,
   toggleTask,
   deleteTask,
 }: {
   tasks: Task[];
+  accentColor: string;
   toggleTask: (id: number) => void;
   deleteTask: (id: number) => void;
 }) {
@@ -16,6 +18,7 @@ export default function Tasklist({
         <TaskItem
           key={task.id}
           {...task}
+          accentColor={accentColor}
           toggleTask={toggleTask}
           deleteTask={deleteTask}
         />
