@@ -58,7 +58,9 @@ async function fetchTasksForUser(userId: string): Promise<Task[]> {
   if (!data) return [];
   return coerceTasks(data.tasks);
 }
-
+app.get("/", (req, res) => {
+  res.send("ok");
+});
 app.get("/api/wallpaper.png", async (req, res) => {
   const deviceQ = req.query.device;
   const themeQ = req.query.theme;
