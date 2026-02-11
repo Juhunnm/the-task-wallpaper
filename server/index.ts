@@ -61,6 +61,7 @@ async function fetchTasksForUser(userId: string): Promise<Task[]> {
 app.get("/", (req, res) => {
   res.send("ok");
 });
+
 app.get("/api/wallpaper.png", async (req, res) => {
   const deviceQ = req.query.device;
   const themeQ = req.query.theme;
@@ -102,7 +103,13 @@ app.get("/api/wallpaper.png", async (req, res) => {
   try {
     browser = await chromium.launch({
       headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",  // Docker /dev/shm 메모리 제한 우회
+        "--disable-gpu",
+        "--single-process",
+      ],
     });
 
     const context = await browser.newContext({
