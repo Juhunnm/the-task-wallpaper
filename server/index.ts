@@ -121,6 +121,9 @@ app.get("/api/wallpaper.png", async (req, res) => {
 
     await page.goto(targetUrl, { waitUntil: "networkidle" });
 
+    // 웹 폰트(Inter) 로드 완료 대기
+    await page.evaluate(() => document.fonts.ready);
+
     const el = await page.waitForSelector("#capture-root", { timeout: 15000 });
 
     await page.waitForTimeout(300);
